@@ -97,21 +97,24 @@ class AppHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Sol taraf - Back button
+            // Sol taraf - Back button (sabit genişlik)
             SizedBox(
               width: controlSize,
-              child: showBack
-                  ? _HeaderButton(
-                      icon: CupertinoIcons.arrowshape_turn_up_left_fill,
-                      metrics: metrics,
-                      accent: accent,
-                      onPressed: () => _handleBack(context),
-                      isCircular: true, // Tamamen yuvarlak
-                    )
-                  : const SizedBox.shrink(),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: showBack
+                    ? _HeaderButton(
+                        icon: CupertinoIcons.arrowshape_turn_up_left_fill,
+                        metrics: metrics,
+                        accent: accent,
+                        onPressed: () => _handleBack(context),
+                        isCircular: true,
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ),
 
-            // Orta - Title (esneyebilir, merkeze alınmış)
+            // Orta - Title (genişleyebilir, merkeze alınmış)
             Expanded(
               child: hasExplicitTitle
                   ? Center(
@@ -141,51 +144,32 @@ class AppHeader extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
 
-            // Sağ taraf - Trailing ve Logo (sabit boyutlu, sağa yaslanmış)
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: size.width * 0.35,
-                minWidth: logoHeight * 0.8,
-              ),
+            // Sağ taraf - Trailing ve Logo (sabit genişlik, her zaman aynı boyutta)
+            SizedBox(
+              width: controlSize + (trailing != null ? metrics.gap(0.35) : 0),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   // Trailing widget varsa
                   if (trailing != null) ...[
-                    Flexible(
-                      child: Padding(
-                        padding: EdgeInsets.only(right: metrics.gap(0.35)),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: trailing!,
-                        ),
-                      ),
+                    Padding(
+                      padding: EdgeInsets.only(right: metrics.gap(0.35)),
+                      child: trailing!,
                     ),
                   ],
 
-                  // Logo - Sağa yaslanmış, esnek
-                  Flexible(
-                    child: GestureDetector(
-                      onTap: () => _handleLogoTap(context),
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxHeight: logoHeight,
-                            minHeight: logoHeight * 0.6,
-                            maxWidth: logoHeight * 2.5,
-                            minWidth: logoHeight * 0.8,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
-                              alignment: Alignment.centerRight,
-                              child: BrandLogo(height: logoHeight),
-                            ),
-                          ),
+                  // Logo - Her zaman sabit konumda
+                  GestureDetector(
+                    onTap: () => _handleLogoTap(context),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: SizedBox(
+                        height: logoHeight,
+                        width: controlSize,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: BrandLogo(height: logoHeight),
                         ),
                       ),
                     ),
