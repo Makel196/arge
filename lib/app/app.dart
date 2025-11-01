@@ -1,5 +1,7 @@
 import "package:flutter/cupertino.dart";
 import "package:flutter/gestures.dart";
+import "package:flutter/material.dart" show Colors;
+import "package:flutter/services.dart";
 import "package:flutter_localizations/flutter_localizations.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
@@ -26,19 +28,29 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    const SystemUiOverlayStyle overlays = SystemUiOverlayStyle(
+      statusBarColor: Colors.black,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.black,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    );
 
-    return CupertinoApp.router(
-      theme: AppTheme.cupertino,
-      routerConfig: router,
-      scrollBehavior: const AppScrollBehavior(),
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        DefaultCupertinoLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale("tr"), Locale("en")],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlays,
+      child: CupertinoApp.router(
+        theme: AppTheme.cupertino,
+        routerConfig: router,
+        scrollBehavior: const AppScrollBehavior(),
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          DefaultCupertinoLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale("tr"), Locale("en")],
+      ),
     );
   }
 }

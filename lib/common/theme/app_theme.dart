@@ -15,6 +15,20 @@ class AppColors {
   static const Color softBorder = Color(0xFFE3E8F3);
 }
 
+enum AppFeature { naming, standards, materials, projects, calculations }
+
+class FeaturePalette {
+  const FeaturePalette({
+    required this.primary,
+    required this.secondary,
+    required this.accent,
+  });
+
+  final Color primary;
+  final Color secondary;
+  final Color accent;
+}
+
 class AppSpacing {
   AppSpacing._();
 
@@ -55,6 +69,14 @@ class AppRadius {
 
 class AppTheme {
   AppTheme._();
+
+  static FeaturePalette featurePalette(AppFeature feature) =>
+      _featurePalettes[feature]!;
+
+  static Color soften(Color color, double amount) {
+    final double t = amount.clamp(0.0, 1.0);
+    return Color.lerp(color, Colors.white, t)!;
+  }
 
   static CupertinoThemeData get cupertino => CupertinoThemeData(
     primaryColor: AppColors.primary,
@@ -119,4 +141,32 @@ class AppTheme {
       cupertinoOverrideTheme: cupertino,
     );
   }
+
+  static const Map<AppFeature, FeaturePalette> _featurePalettes = {
+    AppFeature.naming: FeaturePalette(
+      primary: Color(0xFFE35A63),
+      secondary: Color(0xFFF48E95),
+      accent: Color(0xFFFFE0D6),
+    ),
+    AppFeature.standards: FeaturePalette(
+      primary: Color(0xFF5E76E0),
+      secondary: Color(0xFF92A5F3),
+      accent: Color(0xFFE3E9FF),
+    ),
+    AppFeature.materials: FeaturePalette(
+      primary: Color(0xFF39B39A),
+      secondary: Color(0xFF72D2BC),
+      accent: Color(0xFFE1F6EE),
+    ),
+    AppFeature.projects: FeaturePalette(
+      primary: Color(0xFF8A68DD),
+      secondary: Color(0xFFB59EF3),
+      accent: Color(0xFFEEE5FF),
+    ),
+    AppFeature.calculations: FeaturePalette(
+      primary: Color(0xFFF98B47),
+      secondary: Color(0xFFFBB283),
+      accent: Color(0xFFFFE6D1),
+    ),
+  };
 }

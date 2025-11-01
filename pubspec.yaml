@@ -1,6 +1,6 @@
-﻿name: pgr_arge_sistemleri
+name: pgr_arge_sistemleri
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
@@ -22,6 +22,7 @@ dependencies:
       path: plugins/window_size
   flutter_svg: ^2.0.10+1
   font_awesome_flutter: ^10.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -34,8 +35,8 @@ flutter:
     - assets/icon/
     - assets/decor/
     - assets/sounds/click.mp3
-  # Not: Ä°kon dosyalarÄ±nÄ± app iÃ§inde kullanmayacaksan buraya assets eklemen ÅŸart deÄŸil.
-  # EÄŸer gÃ¶stereceksen:
+  # Note: Add the assets above only if they are used inside the app.
+  # Example usage:
   # assets:
   #   - assets/icon/arge_logo.png
   #   - assets/icon/pgr_bg.png
@@ -49,22 +50,19 @@ flutter_launcher_icons:
   # Legacy (Android 7-)
   image_path_android: assets/icon/arge_logo.png
 
-  # iOS (ÅŸeffaflÄ±k Apple tarafÄ±ndan kabul edilmez)
+  # iOS (transparent backgrounds are not allowed)
   image_path_ios: assets/icon/arge_logo.png
   remove_alpha_ios: true
 
   # Adaptive (Android 8+)
   adaptive_icon_foreground: assets/icon/arge_logo.png
-  # SaÄŸlÄ±klÄ± (Ã¶nerilen) opak arka plan:
-  adaptive_icon_background: "#FFFFFF"  # Ã¶rnek: beyaz
-  # GÃ¶rsel kullanmak istersen:
+  # Recommended solid background color:
+  adaptive_icon_background: "#FFFFFF"
+  # Or use an image:
   # adaptive_icon_background: assets/icon/pgr_bg.png
 
-  # (Opsiyonel) Android 13+ tek renkli ikon
+  # Optional Android 13+ monochrome icon
   # adaptive_icon_monochrome: assets/icon/pgr_monochrome.png
 
-  # (Opsiyonel) min SDK
+  # Optional minimum SDK version
   # min_sdk_android: 21
-
-
-

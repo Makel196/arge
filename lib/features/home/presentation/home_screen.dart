@@ -1,17 +1,15 @@
-﻿import 'dart:math' as math;
-import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 import 'package:pgr_arge_sistemleri/common/utils/responsive.dart';
-import 'package:pgr_arge_sistemleri/common/widgets/brand_logo.dart';
+import 'package:pgr_arge_sistemleri/common/utils/sound_effects.dart';
 import 'package:pgr_arge_sistemleri/common/theme/app_theme.dart';
 import 'package:pgr_arge_sistemleri/common/theme/neomorphism.dart';
+import 'package:pgr_arge_sistemleri/common/widgets/app_header.dart';
 import 'package:pgr_arge_sistemleri/features/home/presentation/widgets/home_action_card.dart';
 
 /// Ana sayfa ekranı - Responsive tasarım ile kartları gösterir
@@ -33,56 +31,45 @@ class _HomeScreenState extends State<HomeScreen> {
   late PageController _pageController;
   double _viewportFraction = 0.9;
   int _currentIndex = 0;
-  late AudioPlayer _audioPlayer;
 
   static const List<_HomeAction> _actions = <_HomeAction>[
     _HomeAction(
+      feature: AppFeature.naming,
       icon: FontAwesomeIcons.tags,
       title: 'İSİMLENDİRME',
       description:
-          'Parça, proje ve doküman adlandırmalarında tek tip kurallar uygulayın.',
-      primaryColor: Color(0xFFD22630),
-      secondaryColor: Color(0xFFF96A49),
-      accentColor: Color(0xFFFFB74D),
+          'Parça, proje ve doküman adlandırma tek tip kurallar uygulayın.',
       routePath: '/naming',
     ),
     _HomeAction(
+      feature: AppFeature.standards,
       icon: FontAwesomeIcons.clipboardCheck,
       title: 'STANDARTLAR',
       description:
           'Kurumsal standartları ve prosedürleri tek yerde yönetin ve paylaşın.',
-      primaryColor: Color(0xFF3F51B5),
-      secondaryColor: Color(0xFF5C6BC0),
-      accentColor: Color(0xFF64B5F6),
       routePath: '/standards',
     ),
     _HomeAction(
+      feature: AppFeature.materials,
       icon: FontAwesomeIcons.boxesStacked,
       title: 'MALZEMELER',
       description:
           'Malzeme kartları, özellikler ve tedarik bilgilerini düzenleyin.',
-      primaryColor: Color(0xFF00897B),
-      secondaryColor: Color(0xFF26A69A),
-      accentColor: Color(0xFFA5D6A7),
       routePath: '/materials',
     ),
     _HomeAction(
+      feature: AppFeature.projects,
       icon: FontAwesomeIcons.diagramProject,
       title: 'PROJELER',
       description: 'Görevleri planlayın, atayın ve ilerlemeyi izleyin.',
-      primaryColor: Color(0xFF6A1B9A),
-      secondaryColor: Color(0xFF8E24AA),
-      accentColor: Color(0xFFCE93D8),
       routePath: '/projects',
     ),
     _HomeAction(
+      feature: AppFeature.calculations,
       icon: FontAwesomeIcons.calculator,
       title: 'HESAPLAMALAR',
       description:
           'Mühendislik ve tasarım hesaplarını doğrulanabilir şablonlarla yapın.',
-      primaryColor: Color.fromARGB(255, 250, 121, 15),
-      secondaryColor: Color.fromARGB(255, 219, 156, 97),
-      accentColor: Color.fromARGB(255, 247, 212, 192),
       routePath: '/calculations',
     ),
   ];
@@ -91,69 +78,81 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: _viewportFraction);
-    _audioPlayer = AudioPlayer();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _audioPlayer.dispose();
     super.dispose();
   }
 
   Future<void> _playClickSound() async {
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('sounds/click.mp3'), volume: 0.3);
-    } catch (e) {
-      debugPrint('Ses çalınamadı: $e');
-    }
+    await SoundEffects.playTap();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final minSide = math.min(size.width, size.height);
-    final double scale = (minSide / 800).clamp(0.75, 1.35);
+    final ResponsiveScale metrics = ResponsiveScale.of(context);
 
-    final double targetViewportFraction = size.width >= Responsive.desktop
+    final double widthScale = (size.width / 1100).clamp(0.8, 1.35);
+    final double heightScale = (size.height / 820).clamp(0.82, 1.2);
+    final double averagedScale = (metrics.scale + widthScale + heightScale) / 3;
+    final double scale = math.min(1.3, math.max(0.82, averagedScale));
+
+    final _HomeAction currentAction = _actions[_currentIndex];
+    final FeaturePalette currentPalette = AppTheme.featurePalette(
+      currentAction.feature,
+    );
+    final LinearGradient backgroundGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: <Color>[
+        Colors.white,
+        AppTheme.soften(currentPalette.accent, 0.85),
+        AppTheme.soften(currentPalette.primary, 0.6),
+        currentPalette.secondary,
+      ],
+      stops: const <double>[0, 0.42, 0.72, 1],
+    );
+
+    final double targetViewportFraction = size.width >= Responsive.wide
+        ? 0.32
+        : size.width >= Responsive.desktop
         ? 0.38
         : size.width >= Responsive.tablet
-        ? 0.62
-        : 0.86;
+        ? 0.6
+        : 0.88;
 
     _ensureViewport(targetViewportFraction);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          _HomeBackground(scale: scale),
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: (20 * scale).clamp(16, 40),
-                vertical: (16 * scale).clamp(12, 24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height: (72 * scale).clamp(48, 88),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () {
-                          _playClickSound();
-                        },
-                        child: Transform.translate(
-                          offset: Offset((-8 * scale).clamp(-16, -4), 0),
-                          child: BrandLogo(height: (72 * scale).clamp(48, 88)),
-                        ),
+      backgroundColor: Colors.transparent,
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(gradient: backgroundGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppHeader(onLogoTap: () => context.go(HomeScreen.routePath)),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: metrics.gap(1.0),
+                    vertical: metrics.gap(0.75),
+                  ),
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 480),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween<double>(begin: 1, end: 0),
+                    builder: (context, value, child) => Opacity(
+                      opacity: 1 - value,
+                      child: Transform.translate(
+                        offset: Offset(0, 48 * value),
+                        child: child,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    flex: 1,
                     child: Center(
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
@@ -161,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: _HomeContent(
                           actions: _actions,
+                          currentPalette: currentPalette,
                           controller: _pageController,
                           currentIndex: _currentIndex,
                           scale: scale,
@@ -175,11 +175,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -238,81 +238,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (action.routePath == null) {
       return;
     }
-    context.go(action.routePath!);
-  }
-}
-
-class _HomeBackground extends StatelessWidget {
-  const _HomeBackground({required this.scale});
-
-  final double scale;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final minSide = math.min(size.width, size.height);
-    final double cornerSide = (minSide * 0.30 * scale).clamp(160, 420);
-
-    final theme = Theme.of(context);
-    final Color backgroundColor = theme.scaffoldBackgroundColor;
-
-    return ColoredBox(
-      color: backgroundColor,
-      child: Stack(
-        children: [
-          _CornerImage(
-            assetPath: 'assets/decor/top_right.svg',
-            alignment: Alignment.topRight,
-            offset: Offset(32 * scale, -32 * scale),
-            side: cornerSide,
-          ),
-          _CornerImage(
-            assetPath: 'assets/decor/bottom_left.svg',
-            alignment: Alignment.bottomLeft,
-            offset: Offset(-32 * scale, 32 * scale),
-            side: cornerSide,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CornerImage extends StatelessWidget {
-  const _CornerImage({
-    required this.assetPath,
-    required this.alignment,
-    required this.offset,
-    required this.side,
-  });
-
-  final String assetPath;
-  final Alignment alignment;
-  final Offset offset;
-  final double side;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: alignment,
-      child: Transform.translate(
-        offset: offset,
-        child: SizedBox(
-          width: side,
-          height: side,
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: SvgPicture.asset(assetPath, fit: BoxFit.contain),
-          ),
-        ),
-      ),
-    );
+    context.push(action.routePath!);
   }
 }
 
 class _HomeContent extends StatelessWidget {
   const _HomeContent({
     required this.actions,
+    required this.currentPalette,
     required this.controller,
     required this.currentIndex,
     required this.scale,
@@ -326,6 +259,7 @@ class _HomeContent extends StatelessWidget {
   });
 
   final List<_HomeAction> actions;
+  final FeaturePalette currentPalette;
   final PageController controller;
   final int currentIndex;
   final double scale;
@@ -340,15 +274,31 @@ class _HomeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final Color accentColor = currentPalette.primary;
+    final Color indicatorColor = AppTheme.soften(accentColor, 0.2);
+    final Color inactiveIndicator = AppTheme.soften(accentColor, 0.82);
+    final Color controlAccent = AppTheme.soften(accentColor, 0.08);
+
     final TextStyle headlineStyle = AppTextStyles.headlineLarge(context)
         .copyWith(
-          fontSize: (32 * scale).clamp(24, 40).toDouble(),
+          fontSize: (32 * scale).clamp(24, 42).toDouble(),
           letterSpacing: 0.4,
           fontWeight: FontWeight.w700,
-          color: Colors.black,
+          color: AppTheme.soften(accentColor, 0.12),
         );
-    final availableHeight = size.height * 0.6;
-    final double cardHeight = (availableHeight * 0.75).clamp(300, 520);
+
+    // DÜZELTME: clamp hatasını önlemek için min ve max değerlerini kontrol ediyoruz
+    final double availableHeight = size.height * 0.62;
+    final double scaledHeight = availableHeight * (0.7 + (scale - 1) * 0.18);
+    final double minCardHeight = 240.0;
+    final double maxCardHeight = size.height * (showSideControls ? 0.68 : 0.75);
+
+    // Minimum değer maksimum değerden büyükse, maksimum değeri minimum değere eşitle
+    final double safeMaxCardHeight = math.max(minCardHeight, maxCardHeight);
+    final double cardHeight = scaledHeight.clamp(
+      minCardHeight,
+      safeMaxCardHeight,
+    );
 
     return SingleChildScrollView(
       physics: const ClampingScrollPhysics(),
@@ -371,6 +321,7 @@ class _HomeContent extends StatelessWidget {
                   controller: controller,
                   actions: actions,
                   currentIndex: currentIndex,
+                  accentColor: controlAccent,
                   scale: scale,
                   showSideControls: showSideControls,
                   onPageChanged: onPageChanged,
@@ -385,6 +336,8 @@ class _HomeContent extends StatelessWidget {
                 currentIndex: currentIndex,
                 itemCount: actions.length,
                 scale: scale,
+                activeColor: indicatorColor,
+                inactiveColor: inactiveIndicator,
                 onTap: onIndicatorTap,
               ),
               if (!showSideControls) ...[
@@ -396,6 +349,7 @@ class _HomeContent extends StatelessWidget {
                       icon: Icons.chevron_left_rounded,
                       onPressed: currentIndex == 0 ? null : onPrevious,
                       scale: scale,
+                      accentColor: controlAccent,
                     ),
                     SizedBox(width: (20 * scale).clamp(16, 28)),
                     _CarouselButton(
@@ -404,6 +358,7 @@ class _HomeContent extends StatelessWidget {
                           ? null
                           : onNext,
                       scale: scale,
+                      accentColor: controlAccent,
                     ),
                   ],
                 ),
@@ -421,6 +376,7 @@ class _ActionCarousel extends StatelessWidget {
     required this.controller,
     required this.actions,
     required this.currentIndex,
+    required this.accentColor,
     required this.scale,
     required this.showSideControls,
     required this.onPageChanged,
@@ -433,6 +389,7 @@ class _ActionCarousel extends StatelessWidget {
   final PageController controller;
   final List<_HomeAction> actions;
   final int currentIndex;
+  final Color accentColor;
   final double scale;
   final bool showSideControls;
   final ValueChanged<int> onPageChanged;
@@ -467,6 +424,11 @@ class _ActionCarousel extends StatelessWidget {
         itemBuilder: (context, index) {
           final action = actions[index];
           final bool isActive = index == currentIndex;
+          final FeaturePalette palette = AppTheme.featurePalette(
+            action.feature,
+          );
+          final double activeScale = 1.02 + (scale - 1) * 0.08;
+          final double inactiveScale = 0.92 + (scale - 1) * 0.05;
 
           return AnimatedPadding(
             duration: const Duration(milliseconds: 360),
@@ -478,7 +440,7 @@ class _ActionCarousel extends StatelessWidget {
             child: AnimatedScale(
               duration: const Duration(milliseconds: 360),
               curve: NeomorphismTokens.smoothCurve,
-              scale: isActive ? 1 : 0.94,
+              scale: isActive ? activeScale : inactiveScale,
               child: HomeActionCard(
                 icon: action.icon,
                 title: action.title,
@@ -490,9 +452,9 @@ class _ActionCarousel extends StatelessWidget {
                         onPlaySound();
                         onActionSelected(action);
                       },
-                primaryColor: action.primaryColor,
-                secondaryColor: action.secondaryColor,
-                accentColor: action.accentColor,
+                primaryColor: palette.primary,
+                secondaryColor: palette.secondary,
+                accentColor: palette.accent,
               ),
             ),
           );
@@ -514,6 +476,7 @@ class _ActionCarousel extends StatelessWidget {
             icon: Icons.chevron_left_rounded,
             onPressed: currentIndex == 0 ? null : onPrevious,
             scale: scale,
+            accentColor: accentColor,
           ),
         ),
         Positioned(
@@ -522,6 +485,7 @@ class _ActionCarousel extends StatelessWidget {
             icon: Icons.chevron_right_rounded,
             onPressed: currentIndex >= actions.length - 1 ? null : onNext,
             scale: scale,
+            accentColor: accentColor,
           ),
         ),
       ],
@@ -535,11 +499,13 @@ class _CarouselButton extends StatefulWidget {
     required this.icon,
     this.onPressed,
     required this.scale,
+    required this.accentColor,
   });
 
   final IconData icon;
   final VoidCallback? onPressed;
   final double scale;
+  final Color accentColor;
 
   @override
   State<_CarouselButton> createState() => _CarouselButtonState();
@@ -547,28 +513,6 @@ class _CarouselButton extends StatefulWidget {
 
 class _CarouselButtonState extends State<_CarouselButton> {
   bool _isPressed = false;
-  late AudioPlayer _audioPlayer;
-
-  @override
-  void initState() {
-    super.initState();
-    _audioPlayer = AudioPlayer();
-  }
-
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  Future<void> _playClickSound() async {
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('sounds/click.mp3'), volume: 0.3);
-    } catch (e) {
-      debugPrint('Ses çalınamadı: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -580,11 +524,8 @@ class _CarouselButtonState extends State<_CarouselButton> {
         .toDouble();
     final bool isEnabled = widget.onPressed != null;
 
-    // Yandaki ok butonları için ortak neomorfik palet kullanılır.
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     final NeomorphismPalette controlPalette = NeomorphismPalette.control(
-      accent: colorScheme.primary,
+      accent: widget.accentColor,
       isPressed: _isPressed,
       isEnabled: isEnabled,
     );
@@ -593,7 +534,7 @@ class _CarouselButtonState extends State<_CarouselButton> {
       onTapDown: (_) {
         if (isEnabled) {
           setState(() => _isPressed = true);
-          _playClickSound();
+          SoundEffects.playTap();
         }
       },
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -639,17 +580,20 @@ class _PageIndicators extends StatelessWidget {
     required this.currentIndex,
     required this.itemCount,
     required this.scale,
+    required this.activeColor,
+    required this.inactiveColor,
     required this.onTap,
   });
 
   final int currentIndex;
   final int itemCount;
   final double scale;
+  final Color activeColor;
+  final Color inactiveColor;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final double height = (8 * scale).clamp(8, 12).toDouble();
     final double passiveWidth = (18 * scale).clamp(12, 24).toDouble();
     final double activeWidth = (40 * scale).clamp(28, 48).toDouble();
@@ -667,9 +611,7 @@ class _PageIndicators extends StatelessWidget {
             height: height,
             width: isActive ? activeWidth : passiveWidth,
             decoration: BoxDecoration(
-              color: isActive
-                  ? colorScheme.primary
-                  : colorScheme.primary.withAlpha((0.2 * 255).round()),
+              color: isActive ? activeColor : inactiveColor,
               borderRadius: AppRadius.cupertino,
             ),
           ),
@@ -681,20 +623,16 @@ class _PageIndicators extends StatelessWidget {
 
 class _HomeAction {
   const _HomeAction({
+    required this.feature,
     required this.icon,
     required this.title,
     required this.description,
-    required this.primaryColor,
-    required this.secondaryColor,
-    required this.accentColor,
     this.routePath,
   });
 
+  final AppFeature feature;
   final IconData icon;
   final String title;
   final String description;
-  final Color primaryColor;
-  final Color secondaryColor;
-  final Color accentColor;
   final String? routePath;
 }
