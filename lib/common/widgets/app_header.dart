@@ -123,7 +123,7 @@ class AppHeader extends StatelessWidget {
     );
   }
 
-  /// Build back button section
+  /// Build back button section - Always maintains fixed width for consistent logo position
   Widget _buildBackButton({
     required BuildContext context,
     required bool showBack,
@@ -131,8 +131,12 @@ class AppHeader extends StatelessWidget {
     required Color accent,
     required ResponsiveScale metrics,
   }) {
+    // IMPORTANT: Always maintain the same width, even when button is hidden
+    // This ensures logo stays in the same position on all pages
+    final double fixedWidth = buttonSize + 8;
+
     return SizedBox(
-      width: buttonSize + 8, // Extra space for visual balance
+      width: fixedWidth, // Fixed width always
       child: showBack
           ? Align(
               alignment: Alignment.centerLeft,
@@ -143,7 +147,7 @@ class AppHeader extends StatelessWidget {
                 onPressed: () => _handleBack(context),
               ),
             )
-          : const SizedBox.shrink(),
+          : const SizedBox.expand(), // Maintain space even when hidden
     );
   }
 
@@ -180,6 +184,7 @@ class AppHeader extends StatelessWidget {
   }
 
   /// Build logo section (logo + optional trailing widget)
+  /// Fixed width ensures logo stays in same position across all pages
   Widget _buildLogoSection({
     required BuildContext context,
     required Widget? trailing,
@@ -187,29 +192,36 @@ class AppHeader extends StatelessWidget {
     required double logoWidth,
     required ResponsiveScale metrics,
   }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Trailing widget
-        if (trailing != null) ...[
-          trailing,
-          SizedBox(width: metrics.gap(0.5)),
-        ],
+    // Calculate fixed width for logo section (with or without trailing)
+    final double trailingSpace = trailing != null ? 40.0 : 0.0;
+    final double fixedLogoSectionWidth = logoWidth + trailingSpace;
 
-        // Logo - Fixed position, maintains aspect ratio
-        GestureDetector(
-          onTap: () => _handleLogoTap(context),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: SizedBox(
-              height: logoHeight,
-              width: logoWidth,
-              child: BrandLogo(height: logoHeight),
+    return SizedBox(
+      width: fixedLogoSectionWidth, // Fixed width always
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Trailing widget
+          if (trailing != null) ...[
+            trailing,
+            SizedBox(width: metrics.gap(0.5)),
+          ],
+
+          // Logo - Fixed position, maintains aspect ratio
+          GestureDetector(
+            onTap: () => _handleLogoTap(context),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: SizedBox(
+                height: logoHeight,
+                width: logoWidth,
+                child: BrandLogo(height: logoHeight),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
