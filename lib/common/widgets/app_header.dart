@@ -68,21 +68,24 @@ class AppHeader extends StatelessWidget {
       1.45,
       math.max(0.72, (metrics.scale + widthScale + heightScale) / 3),
     );
-    final double controlSize = (46 * blendedScale)
-        .clamp(isCompact ? 26 : 32, 72)
+    // Ana sayfadaki sağ-sol butonlarıyla aynı boyut formülü
+    final double controlSize = ((48 + 8) * metrics.scale)
+        .clamp(40, 50)
         .toDouble();
-    final double logoHeight = (68 * blendedScale)
-        .clamp(isCompact ? 36 : 42, 110)
+    final double logoHeight = (controlSize * 1.2)
+        .clamp(isCompact ? 40 : 48, 60)
         .toDouble();
     final double horizontalPadding = metrics.gap(isCompact ? 0.75 : 1.0);
     final double rightPadding = metrics.gap(isCompact ? 0.9 : 1.0);
     final double verticalPadding = metrics.gap(isCompact ? 0.45 : 0.6);
 
-    final double availableCenterWidth =
-        size.width - (horizontalPadding + rightPadding) * 2 - (controlSize * 2);
-    final double titleMaxWidth = availableCenterWidth.clamp(
+    // Overflow düzeltmesi: Daha doğru genişlik hesaplaması
+    final double totalHorizontalPadding = horizontalPadding + rightPadding;
+    final double usedWidth = (controlSize * 2) + totalHorizontalPadding;
+    final double availableCenterWidth = (size.width - usedWidth).clamp(0, double.infinity);
+    final double titleMaxWidth = (availableCenterWidth * 0.85).clamp(
       0,
-      size.width * (isCompact ? 0.68 : 0.52),
+      size.width * (isCompact ? 0.55 : 0.45),
     );
 
     return Padding(
@@ -114,28 +117,33 @@ class AppHeader extends StatelessWidget {
               ),
             ),
 
-            // Orta - Title (genişleyebilir, merkeze alınmış)
+            // Orta - Title (genişleyebilir, merkeze alınmış, boyutsal düzenleme)
             Expanded(
               child: hasExplicitTitle
                   ? Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                        style: TextStyle(
-                          fontSize: metrics.rem(isCompact ? 1.25 : 1.5),
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.45,
-                          color: CupertinoColors.label,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: titleMaxWidth),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              headerText,
-                              maxLines: 1,
-                              textAlign: TextAlign.center,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: metrics.gap(0.5)),
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                          style: TextStyle(
+                            fontSize: metrics.rem(isCompact ? 1.1 : 1.35),
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                            color: CupertinoColors.label,
+                            height: 1.2,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: titleMaxWidth),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.center,
+                              child: Text(
+                                headerText,
+                                maxLines: 1,
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                         ),
@@ -144,37 +152,41 @@ class AppHeader extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
 
-            // Sağ taraf - Trailing ve Logo (sabit genişlik, her zaman aynı boyutta)
+            // Sağ taraf - Logo butonu (overflow düzeltilmiş)
             SizedBox(
-              width: controlSize + (trailing != null ? metrics.gap(0.35) : 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Trailing widget varsa
-                  if (trailing != null) ...[
-                    Padding(
-                      padding: EdgeInsets.only(right: metrics.gap(0.35)),
-                      child: trailing!,
-                    ),
-                  ],
+              width: controlSize,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Trailing widget varsa
+                    if (trailing != null) ...[
+                      Flexible(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: metrics.gap(0.25)),
+                          child: trailing!,
+                        ),
+                      ),
+                    ],
 
-                  // Logo - Her zaman sabit konumda
-                  GestureDetector(
-                    onTap: () => _handleLogoTap(context),
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: SizedBox(
-                        height: logoHeight,
-                        width: controlSize,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: BrandLogo(height: logoHeight),
+                    // Logo - Ana sayfaya dön butonu
+                    GestureDetector(
+                      onTap: () => _handleLogoTap(context),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: SizedBox(
+                          height: logoHeight,
+                          width: controlSize,
+                          child: Center(
+                            child: BrandLogo(height: logoHeight),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -218,9 +230,9 @@ class _HeaderButtonState extends State<_HeaderButton> {
       isPressed: _pressed,
       isEnabled: true,
     );
-    final double side = widget.metrics
-        .icon(3.0)
-        .clamp(widget.metrics.icon(2.4), widget.metrics.icon(3.6))
+    // Ana sayfadaki butonlarla aynı boyut: (48 + 8) * scale
+    final double side = ((48 + 8) * widget.metrics.scale)
+        .clamp(40, 50)
         .toDouble();
 
     // Tamamen yuvarlak veya normal border radius
@@ -249,7 +261,7 @@ class _HeaderButtonState extends State<_HeaderButton> {
           child: Center(
             child: Icon(
               widget.icon,
-              size: widget.metrics.icon(1.3),
+              size: (24 * widget.metrics.scale).clamp(20, 28),
               color: widget.accent,
             ),
           ),
