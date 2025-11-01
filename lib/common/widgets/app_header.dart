@@ -37,9 +37,9 @@ class AppHeader extends StatelessWidget {
   // Responsive size constants
   static const double _minButtonSize = 32.0;
   static const double _maxButtonSize = 56.0;
-  static const double _minLogoHeight = 40.0;
-  static const double _maxLogoHeight = 80.0;
-  static const double _logoAspectRatio = 2.5; // Width = Height * 2.5
+  static const double _minLogoHeight = 56.0;  // Artırıldı: 40 -> 56
+  static const double _maxLogoHeight = 120.0; // Artırıldı: 80 -> 120
+  static const double _logoAspectRatio = 2.8; // Artırıldı: 2.5 -> 2.8 (daha geniş)
 
   void _handleBack(BuildContext context) {
     HapticFeedback.selectionClick();
@@ -234,8 +234,8 @@ class AppHeader extends StatelessWidget {
     final double buttonSize = (44.0 * baseScale)
         .clamp(_minButtonSize, _maxButtonSize);
 
-    // Logo size (maintains aspect ratio)
-    final double logoHeight = (60.0 * baseScale)
+    // Logo size (maintains aspect ratio) - Base artırıldı: 60 -> 90
+    final double logoHeight = (90.0 * baseScale)
         .clamp(_minLogoHeight, _maxLogoHeight);
     final double logoWidth = logoHeight * _logoAspectRatio;
 
