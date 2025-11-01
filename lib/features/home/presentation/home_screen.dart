@@ -133,15 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(gradient: backgroundGradient),
         child: SafeArea(
-          child: Column(
-            children: [
-              AppHeader(onLogoTap: () => context.go(HomeScreen.routePath)),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: metrics.gap(1.0),
-                    vertical: metrics.gap(0.75),
-                  ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: metrics.gap(1.0),
+              vertical: metrics.gap(0.75),
+            ),
+            child: Column(
+              children: [
+                AppHeader(onLogoTap: () => context.go(HomeScreen.routePath)),
+                SizedBox(height: metrics.gap(1.0)),
+                Expanded(
                   child: TweenAnimationBuilder<double>(
                     duration: const Duration(milliseconds: 480),
                     curve: Curves.easeOutCubic,
@@ -176,8 +177,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -281,9 +282,10 @@ class _HomeContent extends StatelessWidget {
 
     final TextStyle headlineStyle = AppTextStyles.headlineLarge(context)
         .copyWith(
-          fontSize: (32 * scale).clamp(24, 42).toDouble(),
-          letterSpacing: 0.4,
+          fontSize: (28 * scale).clamp(19, 38).toDouble(),
+          letterSpacing: 0.35,
           fontWeight: FontWeight.w700,
+          height: 1.15,
           color: AppTheme.soften(accentColor, 0.12),
         );
 
@@ -312,6 +314,8 @@ class _HomeContent extends StatelessWidget {
               Text(
                 'AR-GE SİSTEMLERİ',
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: headlineStyle,
               ),
               SizedBox(height: (24 * scale).clamp(16, 32)),

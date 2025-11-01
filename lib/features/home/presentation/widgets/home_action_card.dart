@@ -115,8 +115,16 @@ class _HomeActionCardState extends State<HomeActionCard> {
             (widget.height != null
                 ? widget.height! / widget.aspectRatio
                 : defaultWidth);
-        final double resolvedHeight =
+        final double baseHeight =
             widget.height ?? (resolvedWidth * widget.aspectRatio);
+        final double minHeight = isMobile ? 236.0 : 260.0;
+        final double maxHeightFactor = isLandscape ? 0.68 : 0.62;
+        final double maxHeight = (screenSize.height * maxHeightFactor)
+            .clamp(minHeight, 520.0)
+            .toDouble();
+        final double resolvedHeight = baseHeight
+            .clamp(minHeight, maxHeight)
+            .toDouble();
         final BorderRadius cardRadius = metrics.br;
         final double contentPadding = metrics
             .gap(isLandscape ? 1.0 : 1.25)
@@ -171,8 +179,14 @@ class _HomeActionCardState extends State<HomeActionCard> {
       color: palette.bodyColor,
       height: 1.45,
     );
-    final double headerGap = metrics.gap(isLandscape ? 0.5 : 0.75);
-    final double footerGap = metrics.gap(isLandscape ? 0.75 : 1.0);
+    final double headerGap = metrics
+        .gap(isLandscape ? 0.45 : 0.65)
+        .clamp(8, 20)
+        .toDouble();
+    final double footerGap = metrics
+        .gap(isLandscape ? 0.65 : 0.9)
+        .clamp(12, 28)
+        .toDouble();
     final int paragraphLines = isLandscape ? 2 : 3;
 
     return AnimatedScale(
@@ -204,8 +218,8 @@ class _HomeActionCardState extends State<HomeActionCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Expanded(
-                      flex: 1,
+                    Flexible(
+                      fit: FlexFit.loose,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -222,8 +236,8 @@ class _HomeActionCardState extends State<HomeActionCard> {
                             style: titleStyle,
                           ),
                           SizedBox(height: headerGap),
-                          Expanded(
-                            flex: 1,
+                          Flexible(
+                            fit: FlexFit.loose,
                             child: Text(
                               widget.subtitle,
                               maxLines: paragraphLines,

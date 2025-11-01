@@ -37,7 +37,8 @@ class CalculationsPage extends StatelessWidget {
       fontWeight: FontWeight.w700,
       color: AppTheme.soften(palette.primary, 0.18),
       letterSpacing: 0.4,
-      fontSize: metrics.rem(1.5),
+      fontSize: metrics.rem(1.3),
+      height: 1.2,
     );
     final TextStyle bodyStyle = AppTextStyles.bodyLarge(context).copyWith(
       color:
@@ -103,6 +104,8 @@ class CalculationsPage extends StatelessWidget {
                               'Hesaplamalar',
                               style: titleStyle,
                               textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: metrics.gap(1.0)),
                             Text(

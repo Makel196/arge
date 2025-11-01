@@ -1,4 +1,3 @@
-// ============ APP_HEADER.DART ============
 import "dart:math" as math;
 
 import "package:flutter/cupertino.dart";
@@ -11,7 +10,7 @@ import "package:pgr_arge_sistemleri/common/utils/responsive.dart";
 import "package:pgr_arge_sistemleri/common/utils/sound_effects.dart";
 import "package:pgr_arge_sistemleri/common/widgets/brand_logo.dart";
 
-/// Shared application header widget with responsive sizing.
+/// Shared application header with consistent responsive sizing.
 class AppHeader extends StatelessWidget {
   const AppHeader({
     super.key,
@@ -48,7 +47,7 @@ class AppHeader extends StatelessWidget {
     if (onLogoTap != null) {
       onLogoTap!.call();
     } else {
-      GoRouter.of(context).go('/');
+      GoRouter.of(context).go("/");
     }
   }
 
@@ -57,49 +56,28 @@ class AppHeader extends StatelessWidget {
     final ResponsiveScale metrics = ResponsiveScale.of(context);
     final Size size = MediaQuery.sizeOf(context);
     final Color accent = accentColor ?? CupertinoColors.activeBlue;
-    final String headerText = title?.trim() ?? '';
+    final String headerText = title?.trim() ?? "";
     final bool hasExplicitTitle = headerText.isNotEmpty;
-    final bool isCompact = size.width < Responsive.tablet;
-    final double widthScale = (size.width / AppConstants.desktopBreakpoint)
-        .clamp(0.75, 1.4);
-    final double heightScale = (size.height / AppConstants.minWindowHeight)
-        .clamp(0.75, 1.2);
-    final double blendedScale = math.min(
-      1.45,
-      math.max(0.72, (metrics.scale + widthScale + heightScale) / 3),
-    );
-    final double controlSize = (46 * blendedScale)
-        .clamp(isCompact ? 26 : 32, 72)
-        .toDouble();
-    final double logoHeight = (68 * blendedScale)
-        .clamp(isCompact ? 36 : 42, 110)
-        .toDouble();
-    final double horizontalPadding = metrics.gap(isCompact ? 0.75 : 1.0);
-    final double rightPadding = metrics.gap(isCompact ? 0.9 : 1.0);
-    final double verticalPadding = metrics.gap(isCompact ? 0.45 : 0.6);
+    final _HeaderLayout layout = _resolveHeaderLayout(metrics, size);
 
-    final double availableCenterWidth =
-        size.width - (horizontalPadding + rightPadding) * 2 - (controlSize * 2);
-    final double titleMaxWidth = availableCenterWidth.clamp(
-      0,
-      size.width * (isCompact ? 0.68 : 0.52),
-    );
+    final double trailingSlotWidth =
+        math.max(layout.logoHeight, layout.controlSize) +
+        (trailing != null ? layout.controlSize + layout.trailingSpacing : 0);
 
     return Padding(
       padding: EdgeInsetsDirectional.only(
-        start: horizontalPadding * (isCompact ? 1.05 : 1.0),
-        end: rightPadding,
-        top: verticalPadding,
-        bottom: verticalPadding,
+        start: layout.horizontalPadding,
+        end: layout.rightPadding,
+        top: layout.verticalPadding,
+        bottom: layout.verticalPadding,
       ),
       child: SizedBox(
-        height: logoHeight,
+        height: layout.logoHeight,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Sol taraf - Back button (sabit genişlik)
             SizedBox(
-              width: controlSize,
+              width: layout.controlSize,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: showBack
@@ -107,69 +85,50 @@ class AppHeader extends StatelessWidget {
                         icon: CupertinoIcons.arrowshape_turn_up_left_fill,
                         metrics: metrics,
                         accent: accent,
+                        size: layout.controlSize,
                         onPressed: () => _handleBack(context),
-                        isCircular: true,
                       )
                     : const SizedBox.shrink(),
               ),
             ),
-
-            // Orta - Title (genişleyebilir, merkeze alınmış)
             Expanded(
+              flex: 2,
               child: hasExplicitTitle
-                  ? Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                        style: TextStyle(
-                          fontSize: metrics.rem(isCompact ? 1.25 : 1.5),
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.45,
-                          color: CupertinoColors.label,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: titleMaxWidth),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.center,
-                            child: Text(
-                              headerText,
-                              maxLines: 1,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
+                  ? _HeaderTitle(
+                      text: headerText,
+                      metrics: metrics,
+                      maxWidth: layout.titleMaxWidth,
+                      isCompact: layout.isCompact,
                     )
                   : const SizedBox.shrink(),
             ),
-
-            // Sağ taraf - Trailing ve Logo (sabit genişlik, her zaman aynı boyutta)
             SizedBox(
-              width: controlSize + (trailing != null ? metrics.gap(0.35) : 0),
+              width: trailingSlotWidth,
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  // Trailing widget varsa
-                  if (trailing != null) ...[
+                  if (trailing != null)
                     Padding(
-                      padding: EdgeInsets.only(right: metrics.gap(0.35)),
-                      child: trailing!,
+                      padding: EdgeInsets.only(right: layout.trailingSpacing),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: trailing!,
+                        ),
+                      ),
                     ),
-                  ],
-
-                  // Logo - Her zaman sabit konumda
                   GestureDetector(
                     onTap: () => _handleLogoTap(context),
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       child: SizedBox(
-                        height: logoHeight,
-                        width: controlSize,
+                        height: layout.logoHeight,
                         child: Align(
                           alignment: Alignment.centerRight,
-                          child: BrandLogo(height: logoHeight),
+                          child: BrandLogo(height: layout.logoHeight),
                         ),
                       ),
                     ),
@@ -190,14 +149,14 @@ class _HeaderButton extends StatefulWidget {
     required this.metrics,
     required this.accent,
     required this.onPressed,
-    this.isCircular = false,
+    required this.size,
   });
 
   final IconData icon;
   final ResponsiveScale metrics;
   final Color accent;
   final VoidCallback onPressed;
-  final bool isCircular;
+  final double size;
 
   @override
   State<_HeaderButton> createState() => _HeaderButtonState();
@@ -218,39 +177,35 @@ class _HeaderButtonState extends State<_HeaderButton> {
       isPressed: _pressed,
       isEnabled: true,
     );
-    final double side = widget.metrics
-        .icon(3.0)
-        .clamp(widget.metrics.icon(2.4), widget.metrics.icon(3.6))
-        .toDouble();
+    final double side = widget.size;
+    final BorderRadius radius = BorderRadius.circular(side);
+    final double iconSize = math.max(
+      18,
+      math.min(side * 0.45, widget.metrics.icon(1.4)),
+    );
 
-    // Tamamen yuvarlak veya normal border radius
-    final BorderRadius radius = widget.isCircular
-        ? BorderRadius.circular(side / 2)
-        : widget.metrics.br;
-
-    return GestureDetector(
-      onTapDown: (_) => _setPressed(true),
-      onTapCancel: () => _setPressed(false),
-      onTapUp: (_) => _setPressed(false),
-      onTap: () {
-        SoundEffects.playTap();
-        widget.onPressed();
-      },
-      child: AnimatedScale(
-        duration: NeomorphismTokens.quickAnimation,
-        curve: NeomorphismTokens.smoothCurve,
-        scale: _pressed ? 0.94 : 1.0,
-        child: AnimatedContainer(
+    return Center(
+      child: GestureDetector(
+        onTapDown: (_) => _setPressed(true),
+        onTapCancel: () => _setPressed(false),
+        onTapUp: (_) => _setPressed(false),
+        onTap: () {
+          SoundEffects.playTap();
+          widget.onPressed();
+        },
+        child: AnimatedScale(
           duration: NeomorphismTokens.quickAnimation,
           curve: NeomorphismTokens.smoothCurve,
-          width: side,
-          height: side,
-          decoration: palette.decoration(radius),
-          child: Center(
-            child: Icon(
-              widget.icon,
-              size: widget.metrics.icon(1.3),
-              color: widget.accent,
+          scale: _pressed ? 0.94 : 1.0,
+          child: AnimatedContainer(
+            duration: NeomorphismTokens.quickAnimation,
+            curve: NeomorphismTokens.smoothCurve,
+            width: side,
+            height: side,
+            decoration: palette.decoration(radius),
+            clipBehavior: Clip.antiAlias,
+            child: Center(
+              child: Icon(widget.icon, size: iconSize, color: widget.accent),
             ),
           ),
         ),
@@ -259,21 +214,131 @@ class _HeaderButtonState extends State<_HeaderButton> {
   }
 }
 
-// ============ HOME_SCREEN.DART DÜZELTMELERİ ============
-// _HomeContent build metodundaki cardHeight hesaplaması şu şekilde değiştirilmeli:
+class _HeaderTitle extends StatelessWidget {
+  const _HeaderTitle({
+    required this.text,
+    required this.metrics,
+    required this.maxWidth,
+    required this.isCompact,
+  });
 
-/*
-ESKI KOD (HATALI):
-final double cardHeight = scaledHeight.clamp(
-  300,
-  size.height * (showSideControls ? 0.68 : 0.75),
-);
+  final String text;
+  final ResponsiveScale metrics;
+  final double maxWidth;
+  final bool isCompact;
 
-YENİ KOD (DÜZELTİLMİŞ):
-*/
-// final double minCardHeight = 240.0;
-// final double maxCardHeight = size.height * (showSideControls ? 0.68 : 0.75);
-// final double cardHeight = scaledHeight.clamp(
-//   minCardHeight,
-//   math.max(minCardHeight, maxCardHeight),
-// );
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        style: TextStyle(
+          fontSize: metrics.rem(isCompact ? 1.25 : 1.5),
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.45,
+          color: CupertinoColors.label,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Text(text, maxLines: 1, textAlign: TextAlign.center),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderLayout {
+  const _HeaderLayout({
+    required this.logoHeight,
+    required this.controlSize,
+    required this.horizontalPadding,
+    required this.rightPadding,
+    required this.verticalPadding,
+    required this.titleMaxWidth,
+    required this.trailingSpacing,
+    required this.isCompact,
+  });
+
+  final double logoHeight;
+  final double controlSize;
+  final double horizontalPadding;
+  final double rightPadding;
+  final double verticalPadding;
+  final double titleMaxWidth;
+  final double trailingSpacing;
+  final bool isCompact;
+}
+
+_HeaderLayout _resolveHeaderLayout(ResponsiveScale metrics, Size size) {
+  final bool isCompact = size.width < Responsive.tablet;
+  final double logoHeight = _resolveLogoHeight(metrics, size, isCompact);
+
+  final double horizontalPadding = metrics
+      .gap(isCompact ? 0.75 : 1.0)
+      .clamp(16, 32);
+  final double rightPadding = metrics.gap(isCompact ? 0.9 : 1.0).clamp(18, 36);
+  final double verticalPadding = metrics
+      .gap(isCompact ? 0.45 : 0.6)
+      .clamp(12, 28);
+  final double controlSize = math.max(
+    36,
+    math.min(logoHeight * (isCompact ? 0.66 : 0.7), 78),
+  );
+
+  final double availableCenterWidth =
+      size.width - (horizontalPadding + rightPadding) * 2 - (controlSize * 2);
+  final double titleMaxWidth = availableCenterWidth.clamp(
+    0,
+    size.width * (isCompact ? 0.68 : 0.52),
+  );
+
+  final double trailingSpacing = metrics.gap(isCompact ? 0.3 : 0.45);
+
+  return _HeaderLayout(
+    logoHeight: logoHeight,
+    controlSize: controlSize,
+    horizontalPadding: horizontalPadding,
+    rightPadding: rightPadding,
+    verticalPadding: verticalPadding,
+    titleMaxWidth: titleMaxWidth,
+    trailingSpacing: trailingSpacing,
+    isCompact: isCompact,
+  );
+}
+
+double _resolveLogoHeight(ResponsiveScale metrics, Size size, bool isCompact) {
+  final double widthProgress = _normalized(
+    size.width,
+    AppConstants.tabletBreakpoint * 0.9,
+    AppConstants.wideBreakpoint * 1.1,
+  );
+  final double heightProgress = _normalized(
+    size.height,
+    AppConstants.minWindowHeight * 0.85,
+    AppConstants.defaultWindowHeight * 1.35,
+  );
+  final double metricBase = metrics.rem(isCompact ? 2.4 : 3.1);
+
+  final double widthBased = _lerp(54, 104, widthProgress);
+  final double heightBased = _lerp(52, 94, heightProgress);
+  final double average = (widthBased + heightBased + metricBase) / 3;
+
+  return average.clamp(34, 104);
+}
+
+double _normalized(double value, double min, double max) {
+  if (max <= min) {
+    return 0;
+  }
+  final double t = (value - min) / (max - min);
+  return t.clamp(0.0, 1.0);
+}
+
+double _lerp(double min, double max, double t) {
+  return min + (max - min) * t;
+}
