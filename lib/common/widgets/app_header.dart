@@ -61,7 +61,7 @@ class AppHeader extends StatelessWidget {
     final _HeaderLayout layout = _resolveHeaderLayout(metrics, size);
 
     final double trailingSlotWidth =
-        math.max(layout.logoHeight, layout.controlSize) +
+        math.max(layout.logoHeight * BrandLogo.aspectRatio, layout.controlSize) +
         (trailing != null ? layout.controlSize + layout.trailingSpacing : 0);
 
     return Padding(

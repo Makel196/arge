@@ -7,14 +7,14 @@ class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key, this.height});
 
   final double? height;
-  static const double _aspectRatio = 180 / 83;
+  static const double aspectRatio = 180 / 83;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double resolvedHeight = _resolveHeight(constraints);
-        final double idealWidth = resolvedHeight * _aspectRatio;
+        final double idealWidth = resolvedHeight * aspectRatio;
         final double resolvedWidth = _resolveWidth(constraints, idealWidth);
 
         return SizedBox(
